@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Sort Puzzle Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right, #ffffff, #e0e0e0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .level-info, .moves-info {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00b4db, #0083b0);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            color: #333;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .game-board {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-height: 400px;
+            width: 100%;
+        }
+
+        .tube {
+            width: 70px;
+            height: 200px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .tube::before {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 220px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px 10px 40px 40px;
+            z-index: -1;
+            transform: perspective(500px) rotateX(20deg);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .tube::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            top: -10px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .liquid {
+            width: 50px;
+            height: 40px;
+            border-radius: 5px 5px 0 0;
+            transition: all 0.5s ease;
+            box-shadow: inset 0 -5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .liquid-top {
+            border-radius: 25px 25px 0 0;
+        }
+
+        .selected {
+            transform: translateY(-10px);
+        }
+
+        .tube.selected::before {
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .levels-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            max-width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .level-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .level-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .level-btn.active {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            box-shadow: 0 0 15px rgba(245, 87, 108, 0.7);
+        }
+
+        .level-btn.completed {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .modal h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .modal p {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+        }
+
+        .instructions {
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            width: 100%;
+            max-width: 700px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .instructions h3 {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .instructions p {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .game-board {
+                gap: 15px;
+            }
+            
+            .tube {
+                width: 60px;
+                height: 180px;
+            }
+            
+            .tube::before {
+                width: 70px;
+                height: 200px;
+            }
+            
+            .liquid {
+                width: 45px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .game-board {
+                gap: 10px;
+            }
+            
+            .tube {
+                width: 50px;
+                height: 150px;
+            }
+            
+            .tube::before {
+                width: 60px;
+                height: 170px;
+            }
+            
+            .liquid {
+                width: 40px;
+                height: 30px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .btn {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>Water Sort Puzzle</h1>
+            <div class="game-info">
+                <div class="level-info">Level: <span id="current-level">1</span>/20</div>
+                <div class="moves-info">Moves: <span id="moves-count">0</span></div>
+                <div class="controls">
+                    <button class="btn btn-primary" id="pause-btn">Pause</button>
+                    <button class="btn btn-secondary" id="reset-btn">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-board" id="game-board">
+            <!-- Tubes will be generated here -->
+        </div>
+
+        <div class="levels-panel" id="levels-panel">
+            <!-- Level buttons will be generated here -->
+        </div>
+
+        <div class="instructions">
+            <h3>How to Play</h3>
+            <p>• Click on a tube to select the top liquid</p>
+            <p>• Click on another tube to pour the liquid into it</p>
+            <p>• You can only pour liquids into empty tubes or tubes with the same color on top</p>
+            <p>• Complete each level by sorting all liquids so each tube contains only one color</p>
+        </div>
+    </div>
+
+    <div class="modal" id="level-complete-modal">
+        <div class="modal-content">
+            <h2>Level Complete!</h2>
+            <p>You completed level <span id="completed-level">1</span> in <span id="completed-moves">0</span> moves!</p>
+            <button class="btn btn-primary" id="next-level-btn">Next Level</button>
+        </div>
+    </div>
+
+    <div class="modal" id="pause-modal">
+        <div class="modal-content">
+            <h2>Game Paused</h2>
+            <p>Take a break or continue playing</p>
+            <button class="btn btn-primary" id="resume-btn">Resume</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentLevel: 1,
+            moves: 0,
+            isPaused: false,
+            selectedTube: null,
+            levels: [
+                // Level 1: Simple 2-color puzzle
+                {
+                    tubes: [
+                        ['#FF5252', '#FF5252', '#FF5252'],
+                        ['#4CAF50', '#4CAF50', '#4CAF50'],
+                        []
+                    ]
+                },
+                // Level 2: 3 colors
+                {
+                    tubes: [
+                        ['#FF5252', '#4CAF50', '#2196F3'],
+                        ['#FF5252', '#4CAF50', '#2196F3'],
+                        ['#FF5252', '#4CAF50', '#2196F3'],
+                        []
+                    ]
+                },
+                // Level 3: 4 colors with more complexity
+                {
+                    tubes: [
+                        ['#FF5252', '#4CAF50', '#FF9800'],
+                        ['#2196F3', '#FF5252', '#4CAF50'],
+                        ['#FF9800', '#2196F3', '#FF9800'],
+                        ['#2196F3', '#4CAF50', '#FF5252'],
+                        [], []
+                    ]
+                },
+                // Level 4: 5 colors
+                {
+                    tubes: [
+                        ['#FF5252', '#4CAF50', '#2196F3'],
+                        ['#FF9800', '#9C27B0', '#FF5252'],
+                        ['#4CAF50', '#2196F3', '#FF9800'],
+                        ['#9C27B0', '#4CAF50', '#2196F3'],
+                        ['#FF9800', '#9C27B0', '#FF5252'],
+                        [], []
+                    ]
+                },
+                // Additional levels would be defined here...
+            ],
+            completedLevels: new Set()
+        };
+
+        // DOM elements
+        const gameBoard = document.getElementById('game-board');
+        const levelsPanel = document.getElementById('levels-panel');
+        const currentLevelElement = document.getElementById('current-level');
+        const movesCountElement = document.getElementById('moves-count');
+        const pauseBtn = document.getElementById('pause-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const levelCompleteModal = document.getElementById('level-complete-modal');
+        const pauseModal = document.getElementById('pause-modal');
+        const resumeBtn = document.getElementById('resume-btn');
+        const nextLevelBtn = document.getElementById('next-level-btn');
+        const completedLevelElement = document.getElementById('completed-level');
+        const completedMovesElement = document.getElementById('completed-moves');
+
+        // Initialize the game
+        function initGame() {
+            renderLevelsPanel();
+            loadLevel(gameState.currentLevel);
+            updateGameInfo();
+            
+            // Event listeners
+            pauseBtn.addEventListener('click', togglePause);
+            resetBtn.addEventListener('click', resetLevel);
+            resumeBtn.addEventListener('click', togglePause);
+            nextLevelBtn.addEventListener('click', nextLevel);
+        }
+
+        // Render the level selection panel
+        function renderLevelsPanel() {
+            levelsPanel.innerHTML = '';
+            for (let i = 1; i <= 20; i++) {
+                const levelBtn = document.createElement('div');
+                levelBtn.className = 'level-btn';
+                if (i === gameState.currentLevel) {
+                    levelBtn.classList.add('active');
+                }
+                if (gameState.completedLevels.has(i)) {
+                    levelBtn.classList.add('completed');
+                }
+                levelBtn.textContent = i;
+                levelBtn.addEventListener('click', () => loadLevel(i));
+                levelsPanel.appendChild(levelBtn);
+            }
+        }
+
+        // Load a specific level
+        function loadLevel(level) {
+            if (level > gameState.levels.length) {
+                // For demo purposes, we'll just loop through available levels
+                level = (level - 1) % gameState.levels.length + 1;
+            }
+            
+            gameState.currentLevel = level;
+            gameState.moves = 0;
+            gameState.selectedTube = null;
+            
+            renderTubes();
+            updateGameInfo();
+            renderLevelsPanel();
+        }
+
+        // Render the tubes for the current level
+        function renderTubes() {
+            gameBoard.innerHTML = '';
+            const levelData = gameState.levels[gameState.currentLevel - 1];
+            
+            levelData.tubes.forEach((tubeLiquids, index) => {
+                const tube = document.createElement('div');
+                tube.className = 'tube';
+                tube.dataset.index = index;
+                
+                // Add liquid elements
+                tubeLiquids.forEach((color, liquidIndex) => {
+                    const liquid = document.createElement('div');
+                    liquid.className = 'liquid';
+                    if (liquidIndex === tubeLiquids.length - 1) {
+                        liquid.classList.add('liquid-top');
+                    }
+                    liquid.style.backgroundColor = color;
+                    tube.appendChild(liquid);
+                });
+                
+                // Add empty space if needed
+                const emptySlots = 3 - tubeLiquids.length;
+                for (let i = 0; i < emptySlots; i++) {
+                    const empty = document.createElement('div');
+                    empty.className = 'liquid';
+                    empty.style.visibility = 'hidden';
+                    tube.appendChild(empty);
+                }
+                
+                tube.addEventListener('click', () => handleTubeClick(index));
+                gameBoard.appendChild(tube);
+            });
+        }
+
+        // Handle tube click
+        function handleTubeClick(tubeIndex) {
+            if (gameState.isPaused) return;
+            
+            const levelData = gameState.levels[gameState.currentLevel - 1];
+            
+            // If no tube is selected, select this one
+            if (gameState.selectedTube === null) {
+                // Check if the tube has any liquid to select
+                if (levelData.tubes[tubeIndex].length > 0) {
+                    gameState.selectedTube = tubeIndex;
+                    document.querySelector(`.tube[data-index="${tubeIndex}"]`).classList.add('selected');
+                }
+            } else {
+                // Try to pour from selected tube to this tube
+                if (gameState.selectedTube !== tubeIndex) {
+                    if (pourLiquid(gameState.selectedTube, tubeIndex)) {
+                        gameState.moves++;
+                        updateGameInfo();
+                        
+                        // Check if level is complete
+                        if (checkLevelComplete()) {
+                            gameState.completedLevels.add(gameState.currentLevel);
+                            showLevelCompleteModal();
+                        }
+                    }
+                }
+                
+                // Deselect the tube
+                document.querySelector(`.tube[data-index="${gameState.selectedTube}"]`).classList.remove('selected');
+                gameState.selectedTube = null;
+            }
+        }
+
+        // Pour liquid from one tube to another
+        function pourLiquid(fromIndex, toIndex) {
+            const levelData = gameState.levels[gameState.currentLevel - 1];
+            const fromTube = levelData.tubes[fromIndex];
+            const toTube = levelData.tubes[toIndex];
+            
+            // Check if fromTube has liquid
+            if (fromTube.length === 0) return false;
+            
+            // Check if toTube is full
+            if (toTube.length >= 3) return false;
+            
+            // Check if toTube is empty or has matching top color
+            const topColor = fromTube[fromTube.length - 1];
+            if (toTube.length > 0 && toTube[toTube.length - 1] !== topColor) {
+                return false;
+            }
+            
+            // Pour the liquid
+            const liquidToPour = fromTube.pop();
+            toTube.push(liquidToPour);
+            
+            // Update the visual representation
+            renderTubes();
+            
+            return true;
+        }
+
+        // Check if the current level is complete
+        function checkLevelComplete() {
+            const levelData = gameState.levels[gameState.currentLevel - 1];
+            
+            // A level is complete if every tube is either empty or contains 3 liquids of the same color
+            return levelData.tubes.every(tube => {
+                if (tube.length === 0) return true;
+                if (tube.length < 3) return false;
+                
+                const firstColor = tube[0];
+                return tube.every(color => color === firstColor);
+            });
+        }
+
+        // Show level complete modal
+        function showLevelCompleteModal() {
+            completedLevelElement.textContent = gameState.currentLevel;
+            completedMovesElement.textContent = gameState.moves;
+            levelCompleteModal.classList.add('active');
+        }
+
+        // Move to the next level
+        function nextLevel() {
+            levelCompleteModal.classList.remove('active');
+            loadLevel(gameState.
